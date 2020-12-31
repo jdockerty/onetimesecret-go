@@ -8,7 +8,6 @@ import (
 	"net/http"
 )
 
-
 const (
 	base = "https://onetimesecret.com/api/v1"
 )
@@ -16,7 +15,7 @@ const (
 // Client is used to set the user's 'Username' and 'Token' for interaction with the OneTimeSecret API.
 type Client struct {
 	Username string
-	Token string
+	Token    string
 }
 
 func createURI(s string) string {
