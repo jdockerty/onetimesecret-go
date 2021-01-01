@@ -161,8 +161,8 @@ func (c *Client) Generate(passphrase, recipient string, ttl int) (*Secret, error
 // specified upon creation of the said secret.
 func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
-	endpointKey := fmt.Sprintf("secret/%s", secretKey)
-	endpoint := createURI(endpointKey)
+	route := fmt.Sprintf("secret/%s", secretKey)
+	endpoint := createURI(route)
 
 	v := url.Values{}
 
@@ -196,6 +196,41 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
 	return otsResponse, nil
 
+}
+
+
+func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
+
+	route := fmt.Sprintf("private/%s", metadataKey)
+
+	endpoint := createURI(route)
+
+	req, err := http.NewRequest("POST", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(c.Username, c.Token)
+
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var otsResponse *Secret
+
+	err = json.Unmarshal(bodyText, &otsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(otsResponse)
+
+	return otsResponse, nil
 }
 
 func createURI(s string) string {
