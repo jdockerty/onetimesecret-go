@@ -54,7 +54,7 @@ func (c *Client) Status() error {
 	if err != nil {
 		return err
 	}
-	log.Println(c.Token, c.Username)
+
 	req.SetBasicAuth(c.Username, c.Token)
 
 	resp, err := c.hc.Do(req)
@@ -121,7 +121,7 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret,
 // Generate will return a short, unique secret which is useful for temporary passwords, one-time pads, salts etc.
 // The response value is the same format as Create(), but the Value field is populated.
 // This request is sent via POST https://onetimesecret.com/api/v1/generate
-func (c *Client) Generate(passphrase, recipient string, ttl int) (*Secret, error) {
+func (c *Client) Generate(recipient, passphrase string, ttl int) (*Secret, error) {
 
 	endpoint := createURI("generate")
 
@@ -192,7 +192,6 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 		return nil, err
 	}
 
-	log.Println(otsResponse)
 
 	return otsResponse, nil
 
@@ -229,9 +228,43 @@ func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
 		return nil, err
 	}
 
-	log.Println(otsResponse)
 
 	return otsResponse, nil
+}
+
+// Burn will remove a secret, stopping it from being read by the recipient.
+// NOTE: This endpoint does not seem to work as intended, although is included for potential future changes.
+func (c *Client) Burn(metadataKey string) (*Secret, error) {
+
+	route := fmt.Sprintf("private/%s/burn", metadataKey)
+
+	endpoint := createURI(route)
+	log.Println(endpoint)
+	req, err := http.NewRequest("POST", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(c.Username, c.Token)
+
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("S:", resp.StatusCode)
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var otsResponse *Secret
+
+	err = json.Unmarshal(bodyText, &otsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return otsResponse, nil
+
 }
 
 func createURI(s string) string {
