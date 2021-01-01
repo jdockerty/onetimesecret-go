@@ -156,6 +156,9 @@ func (c *Client) Generate(passphrase, recipient string, ttl int) (*Secret, error
 	return otsResponse, nil
 }
 
+// Retrieve is used to get the value of a secret which was previously stored. Once you retrieve the secret, it is no longer available.
+// The secretKey parameter is gained from the response when initially creating a secret that is to be shared and the passphrase is what was
+// specified upon creation of the said secret.
 func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
 	endpointKey := fmt.Sprintf("secret/%s", secretKey)
