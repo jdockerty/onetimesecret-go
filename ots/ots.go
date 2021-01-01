@@ -25,18 +25,18 @@ type Client struct {
 
 // Secret is a struct which contains the expected fields from the /share API endpoint.
 type Secret struct {
-	CustomerID         string   `json:"custid"`
-	MetadataKey        string   `json:"metadata_key"`
-	SecretKey          string   `json:"secret_key"`
+	CustomerID         string   `json:"custid,omitempty"`
+	MetadataKey        string   `json:"metadata_key,omitempty"`
+	SecretKey          string   `json:"secret_key,omitempty"`
 	Value              string   `json:"value,omitempty"`
-	TTL                int      `json:"ttl"`
-	MetadataTTL        int      `json:"metadata_ttl"`
-	SecretTTL          int      `json:"secret_ttl"`
-	Recipient          []string `json:"recipient`
-	State              string   `json:"state"`
-	Created            int64    `json:"created"`
-	Updated            int64    `json:"updated"`
-	PassphraseRequired bool     `json:"passphrase_required"`
+	TTL                int      `json:"ttl,omitempty"`
+	MetadataTTL        int      `json:"metadata_ttl,omitempty"`
+	SecretTTL          int      `json:"secret_ttl,omitempty"`
+	Recipient          []string `json:"recipient,omitempty`
+	State              string   `json:"state,omitempty"`
+	Created            int64    `json:"created,omitempty"`
+	Updated            int64    `json:"updated,omitempty"`
+	PassphraseRequired bool     `json:"passphrase_required,omitempty"`
 }
 
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
@@ -154,6 +154,48 @@ func (c *Client) Generate(passphrase, recipient string, ttl int) (*Secret, error
 	}
 
 	return otsResponse, nil
+}
+
+// Retrieve is used to get the value of a secret which was previously stored. Once you retrieve the secret, it is no longer available.
+// The secretKey parameter is gained from the response when initially creating a secret that is to be shared and the passphrase is what was
+// specified upon creation of the said secret.
+func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
+
+	endpointKey := fmt.Sprintf("secret/%s", secretKey)
+	endpoint := createURI(endpointKey)
+
+	v := url.Values{}
+
+	v.Set("secret_key", secretKey)
+	v.Set("passphrase", passphrase)
+
+	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(c.Username, c.Token)
+
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var otsResponse *Secret
+
+	err = json.Unmarshal(bodyText, &otsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(otsResponse)
+
+	return otsResponse, nil
+
 }
 
 func createURI(s string) string {
