@@ -13,11 +13,11 @@ func main() {
 	client := c.New(os.Getenv("OTS_EMAIL"), os.Getenv("OTS_KEY"))
 	client.Status()
 
-	val, err := client.Create("super_secret_text", "password1234", "vehis83986@cocyo.com", 60)
+
+	val, err := client.Generate("1234", "vehis83986@cocyo.com", 20)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Printf("%+v\n", val)
 
-	fmt.Println(val)
-	
 }

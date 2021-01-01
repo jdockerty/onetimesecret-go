@@ -28,6 +28,7 @@ type Secret struct {
 	CustomerID         string   `json:"custid"`
 	MetadataKey        string   `json:"metadata_key"`
 	SecretKey          string   `json:"secret_key"`
+	Value              string   `json:"value,omitempty"`
 	TTL                int      `json:"ttl"`
 	MetadataTTL        int      `json:"metadata_ttl"`
 	SecretTTL          int      `json:"secret_ttl"`
@@ -80,7 +81,7 @@ func (c *Client) Status() error {
 // Passphrase is the string with which the recipient is allowed to view the secret.
 // Recipient is who you wish to send the secret to, using their email address.
 // TTL is the time-to-live of the secret, in seconds. Once this expires, the secret is deleted.
-// POST https://onetimesecret.com/api/v1/share
+// This request is sent via POST https://onetimesecret.com/api/v1/share
 func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret, error) {
 
 	endpoint := createURI("share")
@@ -117,9 +118,42 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret,
 	return otsResponse, nil
 }
 
-// Generate will return a short is useful for temporary passwords, one-time pads, salts etc.
-func (c *Client) Generate() {
+// Generate will return a short, unique secret which is useful for temporary passwords, one-time pads, salts etc.
+// The response value is the same format as Create(), but the Value field is populated.
+// This request is sent via POST https://onetimesecret.com/api/v1/generate
+func (c *Client) Generate(passphrase, recipient string, ttl int) (*Secret, error) {
 
+	endpoint := createURI("generate")
+
+	v := url.Values{}
+	v.Set("passphrase", passphrase)
+	v.Set("ttl", strconv.Itoa(ttl))
+	v.Set("recipient", recipient)
+
+	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(c.Username, c.Token)
+
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var otsResponse *Secret
+
+	err = json.Unmarshal(bodyText, &otsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return otsResponse, nil
 }
 
 func createURI(s string) string {
