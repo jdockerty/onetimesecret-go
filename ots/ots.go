@@ -1,12 +1,9 @@
 package ots
 
 import (
-	// "bytes"
-	// "encoding/json"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,21 +20,22 @@ const (
 type Client struct {
 	Username string
 	Token    string
-	hc http.Client
+	hc       http.Client
 }
 
+// Secret is a struct which contains the expected fields from the /share API endpoint.
 type Secret struct {
-	CustomerID string `json:"custid"`
-	MetadataKey string `json:"metadata_key"`
-	SecretKey string `json:"secret_key"`
-	TTL int `json:"ttl"`
-	MetadataTTL int `json:"metadata_ttl"`
-	SecretTTL int `json:"secret_ttl"`
-	Recipient []string `json:"recipient`
-	State string `json:"state"`
-	Created int64 `json:"created"`
-	Updated int64 `json:"updated"`
-	PassphraseRequired bool `json:"passphrase_required"`
+	CustomerID         string   `json:"custid"`
+	MetadataKey        string   `json:"metadata_key"`
+	SecretKey          string   `json:"secret_key"`
+	TTL                int      `json:"ttl"`
+	MetadataTTL        int      `json:"metadata_ttl"`
+	SecretTTL          int      `json:"secret_ttl"`
+	Recipient          []string `json:"recipient`
+	State              string   `json:"state"`
+	Created            int64    `json:"created"`
+	Updated            int64    `json:"updated"`
+	PassphraseRequired bool     `json:"passphrase_required"`
 }
 
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
@@ -64,7 +62,7 @@ func (c *Client) Status() error {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
@@ -83,8 +81,8 @@ func (c *Client) Status() error {
 // Recipient is who you wish to send the secret to, using their email address.
 // TTL is the time-to-live of the secret, in seconds. Once this expires, the secret is deleted.
 // POST https://onetimesecret.com/api/v1/share
-func (c *Client) Create(secret, passphrase, recipient string, ttl int) error {
-	
+func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret, error) {
+
 	endpoint := createURI("share")
 
 	v := url.Values{}
@@ -95,36 +93,34 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) error {
 
 	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.SetBasicAuth(c.Username, c.Token)
-	
+
 	resp, err := c.hc.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var otsResponse Secret
+
+	var otsResponse *Secret
 
 	err = json.Unmarshal(bodyText, &otsResponse)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// log.Printf("API RESP: %+v\n", otsResponse)
-
-	return nil
+	return otsResponse, nil
 }
 
 // Generate will return a short is useful for temporary passwords, one-time pads, salts etc.
 func (c *Client) Generate() {
 
 }
-
 
 func createURI(s string) string {
 	URI := fmt.Sprintf("%s/%s", base, s)
