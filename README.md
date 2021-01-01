@@ -1,4 +1,4 @@
-# OneTimeSecret (OTS) - Go
+# OneTimeSecret (OTS) - Go Client Library
 
 This serves as a Golang API client for [onetimesecret](https://onetimesecret.com/).
 
