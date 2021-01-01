@@ -198,7 +198,8 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
 }
 
-
+// RetrieveMetadata is used to safely get the associated metadata for particular key. This is intended for the owner of the secret
+// and should be kept private, this lets you view basic information about the secret, such as when or if it has been viewed. 
 func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
 
 	route := fmt.Sprintf("private/%s", metadataKey)
