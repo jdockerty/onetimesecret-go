@@ -43,6 +43,12 @@ type Secret struct {
 // Secrets is a wrapper type for a slice of Secret
 type Secrets []Secret
 
+
+// Health is a simple struct for verifying the response from the /status endpoint.
+type Health struct {
+	Status string
+}
+
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
 // in order to authenticate to the API server with OTS.
 func (c *Client) New(user, token string) *Client {
@@ -50,34 +56,44 @@ func (c *Client) New(user, token string) *Client {
 }
 
 // Status will check the current status of the OTS system.
-// This returns an error if the servers are not online or there are other problems with the request.
-func (c *Client) Status() error {
+// This returns an error if the OTS servers are offline or there are other problems with the request.
+func (c *Client) Status() (*Health, error) {
+
 	endpoint := createURI("status")
 
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
-		return err
+		log.Println("GET: unable to create new request.")
+		return nil, err
 	}
-
 	req.SetBasicAuth(c.Username, c.Token)
 
 	resp, err := c.hc.Do(req)
-
 	if err != nil {
-		return err
+		log.Println("GET: unable to send request.")
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		log.Println("GET: unable to read response.")
+		return nil, err
 	}
 
-	if s := string(body); s == "offline" {
-		return errors.New("server is offline, try again later")
+	var h *Health
+
+	err = json.Unmarshal(body, &h)
+	if err != nil {
+		log.Println("GET: unable to unmarshal response.")
+		return nil, err
 	}
 
-	return nil
+	if h.Status == "offline" {
+		return nil, errors.New("server is offline, try again later")
+	}
+
+	return h, nil
 }
 
 // Create will POST a secret to be stored within OTS, this is shared with the individual you specify via email.
