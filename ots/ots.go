@@ -1,3 +1,4 @@
+// Package ots provides a client for interacting with the OneTimeSecret API.
 package ots
 
 import (
