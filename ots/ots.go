@@ -27,17 +27,41 @@ type Client struct {
 
 // Secret is a struct which contains the expected fields from the /share API endpoint.
 type Secret struct {
+
+	// This is your ID for your account.
 	CustomerID         string   `json:"custid,omitempty"`
+
+	// This should NOT be shared, it is the unique key to retrieve metadata about the secret.
 	MetadataKey        string   `json:"metadata_key,omitempty"`
+
+	// The key for the secret you create, you can share this value.
 	SecretKey          string   `json:"secret_key,omitempty"`
+
+	// When retrieving a secret, this value will be populated.
 	Value              string   `json:"value,omitempty"`
+
+	// A secret may be viewed or burned. 
 	State              string   `json:"state,omitempty"`
+
+	// This represents a slice of email addresses who have received the secret, it is obfuscated. 
 	Recipient          []string `json:"recipient,omitempty"`
+
+	// Time to live in seconds, this is not the remaining time. It is what you specified on creation.
 	TTL                int      `json:"ttl,omitempty"`
+
+	// Remaining time, in seconds, the metadata for a secret is valid for before being destroyed.
 	MetadataTTL        int      `json:"metadata_ttl,omitempty"`
+
+	// Remaining time, in seconds, the secret is valid for before being destroyed.
 	SecretTTL          int      `json:"secret_ttl,omitempty"`
+
+	// Timestamp of when the secret was created, this is in unix time.
 	Created            int64    `json:"created,omitempty"`
+
+	// Timestamp of when the secret was last updated, this is in unix time.
 	Updated            int64    `json:"updated,omitempty"`
+
+	// Whether the secret requires a passphrase or not.
 	PassphraseRequired bool     `json:"passphrase_required,omitempty"`
 }
 
