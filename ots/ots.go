@@ -272,8 +272,7 @@ func (c *Client) Burn(metadataKey string) (*Secret, error) {
 
 }
 
-// RetrieveRecentMetadata is used to get a list of metadata for 
-// secrets that have not yet been viewed by the recipient.
+// RetrieveRecentMetadata is used to get a list of metadata for secrets that have not yet been viewed by the recipient.
 // This request is sent via GET https://onetimesecret.com/api/v1/private/recent
 func (c *Client) RetrieveRecentMetadata() (*Secrets, error) {
 
