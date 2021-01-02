@@ -54,7 +54,7 @@ func (c *Client) New(user, token string) *Client {
 func (c *Client) Status() error {
 	endpoint := createURI("status")
 
-	req, err := http.NewRequest("GET", endpoint, strings.NewReader(""))
+	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		return err
 	}
