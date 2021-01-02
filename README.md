@@ -52,4 +52,4 @@ func main() {
 ```
 
 
-The other exported functions can return a `Secret` or `Secrets` type, which is struct that contains the expected responses from the API, such as a list of recipients for the secret or it's time-to-live value. Which fields are going to be used is left to the user.
+The other exported functions can return a `Secret` or `Secrets` type, which is struct that contains the expected responses from the API, such as a list of recipients for the secret or it's time-to-live value. Which fields are used is left to the user and further details on the various functions are available via the [godoc](https://godoc.org/github.com/jdockerty/onetimesecret-go/ots) page.
