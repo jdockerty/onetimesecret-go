@@ -43,7 +43,6 @@ type Secret struct {
 // Secrets is a wrapper type for a slice of Secret
 type Secrets []Secret
 
-
 // Health is a simple struct for verifying the response from the /status endpoint.
 type Health struct {
 	Status string
@@ -118,7 +117,7 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret,
 	}
 
 	return resp, nil
-	
+
 }
 
 // Generate will return a short, unique secret which is useful for temporary passwords, one-time pads, salts etc.
@@ -155,7 +154,6 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 	v.Set("secret_key", secretKey)
 	v.Set("passphrase", passphrase)
 
-
 	resp, err := c.postRequest(route, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
@@ -166,10 +164,10 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 }
 
 // RetrieveMetadata is used to safely get the associated metadata for particular key. This is intended for the owner of the secret
-// and should be kept private, this lets you view basic information about the secret, such as when or if it has been viewed. 
+// and should be kept private, this lets you view basic information about the secret, such as when or if it has been viewed.
 // This request is sent via POST https://onetimesecret.com/api/v1/private/METADATA_KEY
 func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
-	
+
 	route := fmt.Sprintf("private/%s", metadataKey)
 
 	resp, err := c.postRequest(route, nil)
@@ -238,7 +236,7 @@ func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) 
 		log.Println("POST: Unable to create new request.")
 		return nil, err
 	}
-	
+
 	req.SetBasicAuth(c.Username, c.Token)
 
 	resp, err := c.hc.Do(req)
