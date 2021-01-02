@@ -88,7 +88,7 @@ func (c *Client) Status() error {
 // This request is sent via POST https://onetimesecret.com/api/v1/share
 func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret, error) {
 
-	endpoint := createURI("share")
+	route := "share"
 
 	v := url.Values{}
 	v.Set("secret", secret)
@@ -96,30 +96,36 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret,
 	v.Set("ttl", strconv.Itoa(ttl))
 	v.Set("recipient", recipient)
 
-	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	return resp, nil
+	// req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// req.SetBasicAuth(c.Username, c.Token)
 
-	var otsResponse *Secret
+	// resp, err := c.hc.Do(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
+	// bodyText, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return otsResponse, nil
+	// var otsResponse *Secret
+
+	// err = json.Unmarshal(bodyText, &otsResponse)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return otsResponse, nil
 }
 
 // Generate will return a short, unique secret which is useful for temporary passwords, one-time pads, salts etc.
