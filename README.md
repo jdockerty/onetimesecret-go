@@ -33,7 +33,7 @@ func main() {
         return // If the API is offline, an error is returned.
     }
 
-    // Send a secret to your friends email address, which will be destroyed within 60 seconds of creation. 
+    // Send a secret to your friend's email address, it is destroyed within 60 seconds. 
     // They must enter the passphrase to view it.
     secretResp, err := client.Create(
 	"my super secret value", 
