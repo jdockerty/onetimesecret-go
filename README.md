@@ -19,7 +19,7 @@ A simple use case for checking the status of the OTS API is shown below
 package main
 
 import (
-    "fmt"
+    	"fmt"
 	"github.com/jdockerty/onetimesecret-go/ots"
 )
 
