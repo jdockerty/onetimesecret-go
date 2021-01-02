@@ -20,9 +20,12 @@ const (
 
 // Client is used to set the user's 'Username' and 'Token' for interaction with the OneTimeSecret API.
 type Client struct {
+
+	// Your email
 	Username string
+
+	// API token from the OTS website
 	Token    string
-	hc       http.Client
 }
 
 // Secret is a struct which contains the expected fields from the /share API endpoint.
@@ -77,12 +80,12 @@ type Health struct {
 // in a nicer format.
 func (s *Secret) PrettyPrint() error {
 
-	d, err := json.MarshalIndent(s, "", "\t")
+	prettyJSON, err := json.MarshalIndent(s, "", "\t")
 	if err != nil {
 		return err
 	}
 
-	log.Println(string(d))
+	log.Println(string(prettyJSON))
 	return nil
 }
 
@@ -105,7 +108,7 @@ func (c *Client) Status() error {
 	}
 	req.SetBasicAuth(c.Username, c.Token)
 
-	resp, err := c.hc.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println("GET: unable to send request.")
 		return err
@@ -246,7 +249,7 @@ func (c *Client) RetrieveRecentMetadata() (*Secrets, error) {
 	}
 	req.SetBasicAuth(c.Username, c.Token)
 
-	resp, err := c.hc.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +281,7 @@ func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) 
 
 	req.SetBasicAuth(c.Username, c.Token)
 
-	resp, err := c.hc.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println("POST: Unable to send request.")
 		return nil, err
