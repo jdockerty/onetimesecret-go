@@ -248,6 +248,7 @@ func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("POST: Unable to read response into byte array.")
+		return nil, err
 	}
 	var otsResponse *Secret
 
