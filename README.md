@@ -14,7 +14,7 @@ As such, you can retrieve this package by running the command
 
 Prior to using the package, you must have an account with OTS as this gives you a username, which is your email, to use and an API token. Various functions are exposed which match to the naming conventions of the OTS API.
 
-A simple use case for checking the status of the OTS API is shown below
+A simple use case for checking the status of the OTS API and creating a secret is shown below
 ```go
 package main
 
@@ -30,8 +30,10 @@ func main() {
     
     err := client.Status() // Get the status of the OTS API
     if err != nil {
-        fmt.Println(err) // If the API is offline, an error is returned.
+        return // If the API is offline, an error is returned.
     }
+
+    
 }
 ```
 

@@ -48,6 +48,19 @@ type Health struct {
 	Status string
 }
 
+// PrettyPrint is a simple wrapper for printing out the Secret struct data
+// in a nicer format.
+func (s *Secret) PrettyPrint() error {
+
+	d, err := json.MarshalIndent(s, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	log.Println(string(d))
+	return nil
+}
+
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
 // in order to authenticate to the API server with OTS.
 func (c *Client) New(user, token string) *Client {
@@ -261,6 +274,7 @@ func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) 
 	return otsResponse, nil
 
 }
+
 
 func createURI(s string) string {
 	URI := fmt.Sprintf("%s/%s", base, s)
