@@ -19,14 +19,13 @@ A simple use case for checking the status of the OTS API and creating a secret i
 package main
 
 import (
-	"log"
-
-	"github.com/jdockerty/onetimesecret-go/ots"
+    "log"
+    "github.com/jdockerty/onetimesecret-go/ots"
 )
 
 func main() {
 
-	var c ots.Client
+    var c ots.Client
     client := c.New("YOUR_EMAIL", "API_TOKEN")
     
     err := client.Status() // Get the status of the OTS API
@@ -34,20 +33,20 @@ func main() {
         return // If the API is offline, an error is returned.
     }
 
-	// Send a secret to your friends email address, which will be destroyed within 60 seconds of creation. They must enter the passphrase to 
-    // view it
-	secretResp, err := client.Create(
-		"my super secret value", 
-		"very secret passphrase", 
-		"bestfriend@gmail.com",
-		60)
-	if err != nil {
-		// Handling errors from sending requests and dealing with JSON go here
-		log.Fatal(err) 
+    // Send a secret to your friends email address, which will be destroyed within 60 seconds of creation. 
+    // They must enter the passphrase to view it.
+    secretResp, err := client.Create(
+	"my super secret value", 
+	"very secret passphrase", 
+	"bestfriend@gmail.com",
+	60)
+    if err != nil {
+	// Handling errors from sending requests and dealing with JSON go here
+	log.Fatal(err) 
 	}
 
-	// Log the Secret struct response with various information to stdout in easy to read format.
-	secretResp.PrettyPrint()
+    // Log the Secret struct response with various information to stdout in an easy to read format.
+    secretResp.PrettyPrint()
 
 }
 ```
