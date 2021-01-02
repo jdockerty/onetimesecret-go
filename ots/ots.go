@@ -30,11 +30,11 @@ type Secret struct {
 	MetadataKey        string   `json:"metadata_key,omitempty"`
 	SecretKey          string   `json:"secret_key,omitempty"`
 	Value              string   `json:"value,omitempty"`
+	State              string   `json:"state,omitempty"`
+	Recipient          []string `json:"recipient,omitempty`
 	TTL                int      `json:"ttl,omitempty"`
 	MetadataTTL        int      `json:"metadata_ttl,omitempty"`
 	SecretTTL          int      `json:"secret_ttl,omitempty"`
-	Recipient          []string `json:"recipient,omitempty`
-	State              string   `json:"state,omitempty"`
 	Created            int64    `json:"created,omitempty"`
 	Updated            int64    `json:"updated,omitempty"`
 	PassphraseRequired bool     `json:"passphrase_required,omitempty"`
