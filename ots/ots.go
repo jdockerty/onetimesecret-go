@@ -39,6 +39,9 @@ type Secret struct {
 	PassphraseRequired bool     `json:"passphrase_required,omitempty"`
 }
 
+// Secrets is a wrapper type for a slice of Secret
+type Secrets []Secret
+
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
 // in order to authenticate to the API server with OTS.
 func (c *Client) New(user, token string) *Client {
@@ -159,6 +162,7 @@ func (c *Client) Generate(recipient, passphrase string, ttl int) (*Secret, error
 // Retrieve is used to get the value of a secret which was previously stored. Once you retrieve the secret, it is no longer available.
 // The secretKey parameter is gained from the response when initially creating a secret that is to be shared and the passphrase is what was
 // specified upon creation of the said secret.
+// This request is sent via POST https://onetimesecret.com/api/v1/secret/SECRET_KEY
 func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
 	route := fmt.Sprintf("secret/%s", secretKey)
@@ -199,6 +203,7 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
 // RetrieveMetadata is used to safely get the associated metadata for particular key. This is intended for the owner of the secret
 // and should be kept private, this lets you view basic information about the secret, such as when or if it has been viewed. 
+// This request is sent via POST https://onetimesecret.com/api/v1/private/METADATA_KEY
 func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
 
 	route := fmt.Sprintf("private/%s", metadataKey)
@@ -233,13 +238,14 @@ func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
 }
 
 // Burn will remove a secret, stopping it from being read by the recipient.
+// This request is sent via POST https://onetimesecret.com/api/v1/private/METADATA_KEY/burn
 // NOTE: This endpoint does not seem to work as intended, although is included for potential future changes.
 func (c *Client) Burn(metadataKey string) (*Secret, error) {
 
 	route := fmt.Sprintf("private/%s/burn", metadataKey)
 
 	endpoint := createURI(route)
-	log.Println(endpoint)
+
 	req, err := http.NewRequest("POST", endpoint, nil)
 	if err != nil {
 		return nil, err
@@ -250,7 +256,7 @@ func (c *Client) Burn(metadataKey string) (*Secret, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("S:", resp.StatusCode)
+
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -265,6 +271,39 @@ func (c *Client) Burn(metadataKey string) (*Secret, error) {
 
 	return otsResponse, nil
 
+}
+
+// RetrieveRecentMetadata is used to get a list of metadata for 
+// secrets that have not yet been viewed by the recipient.
+// This request is sent via GET https://onetimesecret.com/api/v1/private/recent
+func (c *Client) RetrieveRecentMetadata() (*Secrets, error) {
+
+	endpoint := createURI("private/recent")
+
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(c.Username, c.Token)
+
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var otsResponse *Secrets
+
+	err = json.Unmarshal(bodyText, &otsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return otsResponse, nil
 }
 
 func createURI(s string) string {
