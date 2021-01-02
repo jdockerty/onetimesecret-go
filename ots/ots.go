@@ -48,6 +48,19 @@ type Health struct {
 	Status string
 }
 
+// PrettyPrint is a simple wrapper for printing out the Secret struct data
+// in a nicer format.
+func (s *Secret) PrettyPrint() error {
+
+	d, err := json.MarshalIndent(s, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	log.Println(string(d))
+	return nil
+}
+
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
 // in order to authenticate to the API server with OTS.
 func (c *Client) New(user, token string) *Client {
@@ -56,28 +69,28 @@ func (c *Client) New(user, token string) *Client {
 
 // Status will check the current status of the OTS system.
 // This returns an error if the OTS servers are offline or there are other problems with the request.
-func (c *Client) Status() (*Health, error) {
+func (c *Client) Status() error {
 
 	endpoint := createURI("status")
 
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		log.Println("GET: unable to create new request.")
-		return nil, err
+		return err
 	}
 	req.SetBasicAuth(c.Username, c.Token)
 
 	resp, err := c.hc.Do(req)
 	if err != nil {
 		log.Println("GET: unable to send request.")
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("GET: unable to read response.")
-		return nil, err
+		return err
 	}
 
 	var h *Health
@@ -85,14 +98,14 @@ func (c *Client) Status() (*Health, error) {
 	err = json.Unmarshal(body, &h)
 	if err != nil {
 		log.Println("GET: unable to unmarshal response.")
-		return nil, err
+		return err
 	}
 
 	if h.Status == "offline" {
-		return nil, errors.New("server is offline, try again later")
+		return errors.New("server is offline, try again later")
 	}
 
-	return h, nil
+	return nil
 }
 
 // Create will POST a secret to be stored within OTS, this is shared with the individual you specify via email.
@@ -261,6 +274,7 @@ func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) 
 	return otsResponse, nil
 
 }
+
 
 func createURI(s string) string {
 	URI := fmt.Sprintf("%s/%s", base, s)
