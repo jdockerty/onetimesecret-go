@@ -31,7 +31,7 @@ type Secret struct {
 	SecretKey          string   `json:"secret_key,omitempty"`
 	Value              string   `json:"value,omitempty"`
 	State              string   `json:"state,omitempty"`
-	Recipient          []string `json:"recipient,omitempty`
+	Recipient          []string `json:"recipient,omitempty"`
 	TTL                int      `json:"ttl,omitempty"`
 	MetadataTTL        int      `json:"metadata_ttl,omitempty"`
 	SecretTTL          int      `json:"secret_ttl,omitempty"`
