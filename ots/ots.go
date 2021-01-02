@@ -272,32 +272,36 @@ func (c *Client) Burn(metadataKey string) (*Secret, error) {
 
 	route := fmt.Sprintf("private/%s/burn", metadataKey)
 
-	endpoint := createURI(route)
-
-	req, err := http.NewRequest("POST", endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	return resp, nil
+	// req, err := http.NewRequest("POST", endpoint, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// req.SetBasicAuth(c.Username, c.Token)
 
-	var otsResponse *Secret
+	// resp, err := c.hc.Do(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
+	// bodyText, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return otsResponse, nil
+	// var otsResponse *Secret
+
+	// err = json.Unmarshal(bodyText, &otsResponse)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return otsResponse, nil
 
 }
 
