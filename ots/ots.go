@@ -270,7 +270,7 @@ func (c *Client) RetrieveRecentMetadata() (*Secrets, error) {
 func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) {
 
 	endpoint := createURI(routePath)
-	log.Println(endpoint)
+
 	req, err := http.NewRequest("POST", endpoint, body)
 	if err != nil {
 		log.Println("POST: Unable to create new request.")
