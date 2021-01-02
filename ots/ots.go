@@ -118,30 +118,7 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret,
 	}
 
 	return resp, nil
-	// req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// req.SetBasicAuth(c.Username, c.Token)
-
-	// resp, err := c.hc.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// bodyText, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// var otsResponse *Secret
-
-	// err = json.Unmarshal(bodyText, &otsResponse)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return otsResponse, nil
+	
 }
 
 // Generate will return a short, unique secret which is useful for temporary passwords, one-time pads, salts etc.
@@ -162,30 +139,7 @@ func (c *Client) Generate(recipient, passphrase string, ttl int) (*Secret, error
 	}
 
 	return resp, nil
-	// req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// req.SetBasicAuth(c.Username, c.Token)
 
-	// resp, err := c.hc.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// bodyText, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// var otsResponse *Secret
-
-	// err = json.Unmarshal(bodyText, &otsResponse)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return otsResponse, nil
 }
 
 // Retrieve is used to get the value of a secret which was previously stored. Once you retrieve the secret, it is no longer available.
@@ -208,34 +162,6 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 	}
 
 	return resp, nil
-	// endpoint := createURI(route)
-
-
-	// req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// req.SetBasicAuth(c.Username, c.Token)
-
-	// resp, err := c.hc.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// bodyText, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// var otsResponse *Secret
-
-	// err = json.Unmarshal(bodyText, &otsResponse)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-
-	// return otsResponse, nil
 
 }
 
@@ -252,33 +178,7 @@ func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
 	}
 
 	return resp, nil
-	// endpoint := createURI(route)
 
-	// req, err := http.NewRequest("POST", endpoint, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// req.SetBasicAuth(c.Username, c.Token)
-
-	// resp, err := c.hc.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// bodyText, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// var otsResponse *Secret
-
-	// err = json.Unmarshal(bodyText, &otsResponse)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-
-	// return otsResponse, nil
 }
 
 // Burn will remove a secret, stopping it from being read by the recipient.
@@ -294,30 +194,6 @@ func (c *Client) Burn(metadataKey string) (*Secret, error) {
 	}
 
 	return resp, nil
-	// req, err := http.NewRequest("POST", endpoint, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// req.SetBasicAuth(c.Username, c.Token)
-
-	// resp, err := c.hc.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// bodyText, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// var otsResponse *Secret
-
-	// err = json.Unmarshal(bodyText, &otsResponse)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return otsResponse, nil
 
 }
 
