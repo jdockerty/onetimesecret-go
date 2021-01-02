@@ -20,7 +20,11 @@ const (
 
 // Client is used to set the user's 'Username' and 'Token' for interaction with the OneTimeSecret API.
 type Client struct {
+
+	// Your email
 	Username string
+
+	// API token from the OTS website
 	Token    string
 }
 
@@ -76,12 +80,12 @@ type Health struct {
 // in a nicer format.
 func (s *Secret) PrettyPrint() error {
 
-	d, err := json.MarshalIndent(s, "", "\t")
+	prettyJSON, err := json.MarshalIndent(s, "", "\t")
 	if err != nil {
 		return err
 	}
 
-	log.Println(string(d))
+	log.Println(string(prettyJSON))
 	return nil
 }
 
