@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -28,11 +30,11 @@ type Secret struct {
 	MetadataKey        string   `json:"metadata_key,omitempty"`
 	SecretKey          string   `json:"secret_key,omitempty"`
 	Value              string   `json:"value,omitempty"`
+	State              string   `json:"state,omitempty"`
+	Recipient          []string `json:"recipient,omitempty"`
 	TTL                int      `json:"ttl,omitempty"`
 	MetadataTTL        int      `json:"metadata_ttl,omitempty"`
 	SecretTTL          int      `json:"secret_ttl,omitempty"`
-	Recipient          []string `json:"recipient,omitempty`
-	State              string   `json:"state,omitempty"`
 	Created            int64    `json:"created,omitempty"`
 	Updated            int64    `json:"updated,omitempty"`
 	PassphraseRequired bool     `json:"passphrase_required,omitempty"`
@@ -41,6 +43,11 @@ type Secret struct {
 // Secrets is a wrapper type for a slice of Secret
 type Secrets []Secret
 
+// Health is a simple struct for verifying the response from the /status endpoint.
+type Health struct {
+	Status string
+}
+
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
 // in order to authenticate to the API server with OTS.
 func (c *Client) New(user, token string) *Client {
@@ -48,34 +55,44 @@ func (c *Client) New(user, token string) *Client {
 }
 
 // Status will check the current status of the OTS system.
-// This returns an error if the servers are not online or there are other problems with the request.
-func (c *Client) Status() error {
+// This returns an error if the OTS servers are offline or there are other problems with the request.
+func (c *Client) Status() (*Health, error) {
+
 	endpoint := createURI("status")
 
-	req, err := http.NewRequest("GET", endpoint, strings.NewReader(""))
+	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
-		return err
+		log.Println("GET: unable to create new request.")
+		return nil, err
 	}
-
 	req.SetBasicAuth(c.Username, c.Token)
 
 	resp, err := c.hc.Do(req)
-
 	if err != nil {
-		return err
+		log.Println("GET: unable to send request.")
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		log.Println("GET: unable to read response.")
+		return nil, err
 	}
 
-	if s := string(body); s == "offline" {
-		return errors.New("server is offline, try again later")
+	var h *Health
+
+	err = json.Unmarshal(body, &h)
+	if err != nil {
+		log.Println("GET: unable to unmarshal response.")
+		return nil, err
 	}
 
-	return nil
+	if h.Status == "offline" {
+		return nil, errors.New("server is offline, try again later")
+	}
+
+	return h, nil
 }
 
 // Create will POST a secret to be stored within OTS, this is shared with the individual you specify via email.
@@ -86,7 +103,7 @@ func (c *Client) Status() error {
 // This request is sent via POST https://onetimesecret.com/api/v1/share
 func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret, error) {
 
-	endpoint := createURI("share")
+	route := "share"
 
 	v := url.Values{}
 	v.Set("secret", secret)
@@ -94,30 +111,13 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret,
 	v.Set("ttl", strconv.Itoa(ttl))
 	v.Set("recipient", recipient)
 
-	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	return resp, nil
 
-	var otsResponse *Secret
-
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return otsResponse, nil
 }
 
 // Generate will return a short, unique secret which is useful for temporary passwords, one-time pads, salts etc.
@@ -125,37 +125,20 @@ func (c *Client) Create(secret, passphrase, recipient string, ttl int) (*Secret,
 // This request is sent via POST https://onetimesecret.com/api/v1/generate
 func (c *Client) Generate(recipient, passphrase string, ttl int) (*Secret, error) {
 
-	endpoint := createURI("generate")
+	route := "generate"
 
 	v := url.Values{}
 	v.Set("passphrase", passphrase)
 	v.Set("ttl", strconv.Itoa(ttl))
 	v.Set("recipient", recipient)
 
-	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	return resp, nil
 
-	var otsResponse *Secret
-
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return otsResponse, nil
 }
 
 // Retrieve is used to get the value of a secret which was previously stored. Once you retrieve the secret, it is no longer available.
@@ -165,75 +148,35 @@ func (c *Client) Generate(recipient, passphrase string, ttl int) (*Secret, error
 func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
 	route := fmt.Sprintf("secret/%s", secretKey)
-	endpoint := createURI(route)
 
 	v := url.Values{}
 
 	v.Set("secret_key", secretKey)
 	v.Set("passphrase", passphrase)
 
-	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var otsResponse *Secret
-
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
-
-
-	return otsResponse, nil
+	return resp, nil
 
 }
 
 // RetrieveMetadata is used to safely get the associated metadata for particular key. This is intended for the owner of the secret
-// and should be kept private, this lets you view basic information about the secret, such as when or if it has been viewed. 
+// and should be kept private, this lets you view basic information about the secret, such as when or if it has been viewed.
 // This request is sent via POST https://onetimesecret.com/api/v1/private/METADATA_KEY
 func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
 
 	route := fmt.Sprintf("private/%s", metadataKey)
 
-	endpoint := createURI(route)
-
-	req, err := http.NewRequest("POST", endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	return resp, nil
 
-	var otsResponse *Secret
-
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
-
-
-	return otsResponse, nil
 }
 
 // Burn will remove a secret, stopping it from being read by the recipient.
@@ -243,32 +186,12 @@ func (c *Client) Burn(metadataKey string) (*Secret, error) {
 
 	route := fmt.Sprintf("private/%s/burn", metadataKey)
 
-	endpoint := createURI(route)
-
-	req, err := http.NewRequest("POST", endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var otsResponse *Secret
-
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return otsResponse, nil
+	return resp, nil
 
 }
 
@@ -302,6 +225,41 @@ func (c *Client) RetrieveRecentMetadata() (*Secrets, error) {
 	}
 
 	return otsResponse, nil
+}
+
+func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) {
+
+	endpoint := createURI(routePath)
+
+	req, err := http.NewRequest("POST", endpoint, body)
+	if err != nil {
+		log.Println("POST: Unable to create new request.")
+		return nil, err
+	}
+
+	req.SetBasicAuth(c.Username, c.Token)
+
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		log.Println("POST: Unable to send request.")
+		return nil, err
+	}
+
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("POST: Unable to read response into byte array.")
+		return nil, err
+	}
+	var otsResponse *Secret
+
+	err = json.Unmarshal(responseBody, &otsResponse)
+	if err != nil {
+		log.Println("POST: Unable to unmarshal JSON response.")
+		return nil, err
+	}
+
+	return otsResponse, nil
+
 }
 
 func createURI(s string) string {
