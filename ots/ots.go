@@ -22,7 +22,6 @@ const (
 type Client struct {
 	Username string
 	Token    string
-	hc       http.Client
 }
 
 // Secret is a struct which contains the expected fields from the /share API endpoint.
@@ -105,7 +104,7 @@ func (c *Client) Status() error {
 	}
 	req.SetBasicAuth(c.Username, c.Token)
 
-	resp, err := c.hc.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println("GET: unable to send request.")
 		return err
@@ -246,7 +245,7 @@ func (c *Client) RetrieveRecentMetadata() (*Secrets, error) {
 	}
 	req.SetBasicAuth(c.Username, c.Token)
 
-	resp, err := c.hc.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +277,7 @@ func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) 
 
 	req.SetBasicAuth(c.Username, c.Token)
 
-	resp, err := c.hc.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println("POST: Unable to send request.")
 		return nil, err
