@@ -1,3 +1,4 @@
+// Package ots provides a client for interacting with the OneTimeSecret API.
 package ots
 
 import (
@@ -195,6 +196,7 @@ func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
 // Burn will remove a secret, stopping it from being read by the recipient.
 // This request is sent via POST https://onetimesecret.com/api/v1/private/METADATA_KEY/burn
 // NOTE: This endpoint does not seem to work as intended, although is included for potential future changes.
+// Further testing will be done to confirm the root cause, at a later date.
 func (c *Client) Burn(metadataKey string) (*Secret, error) {
 
 	route := fmt.Sprintf("private/%s/burn", metadataKey)
