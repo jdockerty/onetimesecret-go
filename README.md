@@ -19,7 +19,8 @@ A simple use case for checking the status of the OTS API and creating a secret i
 package main
 
 import (
-    "fmt"
+	"log"
+
 	"github.com/jdockerty/onetimesecret-go/ots"
 )
 
@@ -33,8 +34,22 @@ func main() {
         return // If the API is offline, an error is returned.
     }
 
-    
+	// Send a secret to your friends email address, which will be destroyed within 60 seconds of creation. They must enter the passphrase to 
+    // view it
+	secretResp, err := client.Create(
+		"my super secret value", 
+		"very secret passphrase", 
+		"bestfriend@gmail.com",
+		60)
+	if err != nil {
+		// Handling errors from sending requests and dealing with JSON go here
+		log.Fatal(err) 
+	}
+
+	// Log the Secret struct response with various information to stdout in easy to read format.
+	secretResp.PrettyPrint()
+
 }
 ```
 
-The other exported functions can return a `Secret` type, which is struct that contains the expected responses from the API, such as a list of recipients for the secret or it's time-to-live value.
+The other exported functions can return a `Secret` or `Secrets` type, which is struct that contains the expected responses from the API, such as a list of recipients for the secret or it's time-to-live value. Which fields are going to be used is left to the user.
