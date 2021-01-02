@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -165,38 +167,47 @@ func (c *Client) Generate(recipient, passphrase string, ttl int) (*Secret, error
 func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 
 	route := fmt.Sprintf("secret/%s", secretKey)
-	endpoint := createURI(route)
 
 	v := url.Values{}
 
 	v.Set("secret_key", secretKey)
 	v.Set("passphrase", passphrase)
 
-	req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
 
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var otsResponse *Secret
-
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
+	return resp, nil
+	// endpoint := createURI(route)
 
 
-	return otsResponse, nil
+	// req, err := http.NewRequest("POST", endpoint, strings.NewReader(v.Encode()))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// req.SetBasicAuth(c.Username, c.Token)
+
+	// resp, err := c.hc.Do(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// bodyText, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// var otsResponse *Secret
+
+	// err = json.Unmarshal(bodyText, &otsResponse)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+
+	// return otsResponse, nil
 
 }
 
@@ -204,36 +215,42 @@ func (c *Client) Retrieve(secretKey, passphrase string) (*Secret, error) {
 // and should be kept private, this lets you view basic information about the secret, such as when or if it has been viewed. 
 // This request is sent via POST https://onetimesecret.com/api/v1/private/METADATA_KEY
 func (c *Client) RetrieveMetadata(metadataKey string) (*Secret, error) {
-
+	
 	route := fmt.Sprintf("private/%s", metadataKey)
 
-	endpoint := createURI(route)
-
-	req, err := http.NewRequest("POST", endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.Username, c.Token)
-
-	resp, err := c.hc.Do(req)
+	resp, err := c.postRequest(route, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	return resp, nil
+	// endpoint := createURI(route)
 
-	var otsResponse *Secret
+	// req, err := http.NewRequest("POST", endpoint, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// req.SetBasicAuth(c.Username, c.Token)
 
-	err = json.Unmarshal(bodyText, &otsResponse)
-	if err != nil {
-		return nil, err
-	}
+	// resp, err := c.hc.Do(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// bodyText, err := ioutil.ReadAll(resp.Body)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// var otsResponse *Secret
+
+	// err = json.Unmarshal(bodyText, &otsResponse)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 
-	return otsResponse, nil
+	// return otsResponse, nil
 }
 
 // Burn will remove a secret, stopping it from being read by the recipient.
@@ -302,6 +319,40 @@ func (c *Client) RetrieveRecentMetadata() (*Secrets, error) {
 	}
 
 	return otsResponse, nil
+}
+
+func (c *Client) postRequest(routePath string, body io.Reader) (*Secret, error) {
+
+	endpoint := createURI(routePath)
+
+	req, err := http.NewRequest("POST", endpoint, body)
+	if err != nil {
+		log.Println("POST: Unable to create new request.")
+		return nil, err
+	}
+	
+	req.SetBasicAuth(c.Username, c.Token)
+
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		log.Println("POST: Unable to send request.")
+		return nil, err
+	}
+
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("POST: Unable to read response into byte array.")
+	}
+	var otsResponse *Secret
+
+	err = json.Unmarshal(responseBody, &otsResponse)
+	if err != nil {
+		log.Println("POST: Unable to unmarshal JSON response.")
+		return nil, err
+	}
+
+	return otsResponse, nil
+
 }
 
 func createURI(s string) string {
