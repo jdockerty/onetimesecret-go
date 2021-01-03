@@ -25,8 +25,7 @@ import (
 
 func main() {
 
-    var c ots.Client
-    client := c.New("YOUR_EMAIL", "API_TOKEN")
+    client := ots.New("YOUR_EMAIL", "API_TOKEN")
     
     err := client.Status() // Get the status of the OTS API
     if err != nil {
