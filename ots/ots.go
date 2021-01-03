@@ -91,7 +91,7 @@ func (s *Secret) PrettyPrint() error {
 
 // New returns a populated client to OneTimeSecret, this uses your provided username (email) and token (API token in your account)
 // in order to authenticate to the API server with OTS.
-func (c *Client) New(user, token string) *Client {
+func New(user, token string) *Client {
 	return &Client{Username: user, Token: token}
 }
 
